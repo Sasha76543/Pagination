@@ -1,64 +1,44 @@
-
-    const API_KEY = 'https://pixabay.com/api/?key={ KEY }&q=yellow+flowers&image_type=photo'; 
+const API_KEY = 'https://pixabay.com/api/?key={ KEY }&q=yellow+flowers&image_type=photo';
 const API_URL = 'https://pixabay.com/api/';
-const PER_PAGE = 3; 
-
-let currentPage = 1;
+let currentPage = 3;
 
 const gallery = document.getElementById('gallery');
-const loadMoreButton = document.getElementById('load-more');
-const loader = document.getElementById('loader');
-
-
-async function fetchImages(page = 1) {
-  const url = `${API_URL}?key=${API_KEY}&editors_choice=true&per_page=${PER_PAGE}&page=${page}`;
+const loadMoreButton = document.getElementById('loadMore');
+0
+ const fetchImages = (async (page) =>{
   try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Error fetching data');
+    const response = await fetch(`${API_URL}?key=${API_KEY}&editors_choice=true&image_type=photo&page=${page}&per_page=10`);
     const data = await response.json();
     return data.hits; 
-  } catch (error) {
-    console.error('Error fetching images:', error);
+} catch (error) {
+    console.error('Помилка завантаження зображень:', error);
     return [];
-  }
 }
 
-function createImageCard(image) {
-  const card = document.createElement('div');
-  card.className = 'image-card';
-  card.innerHTML = `
-    <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
-  `;
-  return card;
-}
+})
 
-function renderImages(images) {
-  const fragment = document.createDocumentFragment();
+
+const displayImages = ((images) => {
   images.forEach(image => {
-    const card = createImageCard(image);
-    fragment.appendChild(card);
-  });
-  gallery.appendChild(fragment);
-}
+    const img = document.createElement('img');
+    img.src = image.webformatURL;
+    img.alt = image.tags;
+    gallery.appendChild(img);
+});
+})
 
-async function loadImages() {
-  loader.style.display = 'block';
-  loadMoreButton.disabled = true;
 
-  const images = await fetchImages(currentPage);
-  loader.style.display = 'none';
-  loadMoreButton.disabled = false;
-
-  if (images && images.length > 0) {
-    renderImages(images);
+displayImages(images)
+loadMoreButton.addEventListener('click', async () => {
     currentPage++;
-  } else {
-    loadMoreButton.style.display = 'none'; 
-  }
-}
+    const images = await fetchImages(currentPage);
+    displayImages(images);
+});
 
-loadMoreButton.addEventListener('click', loadImages);
+(async () => {
+    const images = await fetchImages(currentPage);
+    displayImages(images);
+})();
 
-loadImages();
-
-
+currentPage = localStorage.getItem('currentPage') || 3;
+localStorage.setItem('currentPage', currentPage);
